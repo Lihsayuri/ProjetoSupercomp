@@ -27,21 +27,21 @@ struct Filme{
 };
 
 
-void ordena_final(vector<Filme> &matriz_filmes){
-    std::sort(matriz_filmes.begin(), matriz_filmes.end(), [] (Filme &a, Filme &b){
+void ordena_final(vector<Filme> &vetor_filmes){
+    std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
 		return a.fim < b.fim;
 	});
 
 }
 
-void ordena_inicio(vector<Filme> &matriz_filmes){
+void ordena_inicio(vector<Filme> &vetor_filmes){
     // Se e somente se o vetor tiver dois horários finais iguais, o que vem primeiro vai ser o vetor com o horśrio inicial menor.
-    for (int i = 0; i < int(matriz_filmes.size()); i++){
-        if (matriz_filmes[i].fim == matriz_filmes[i+1].fim){
-            if (matriz_filmes[i].inicio > matriz_filmes[i+1].inicio){
-                Filme aux = matriz_filmes[i];
-                matriz_filmes[i] = matriz_filmes[i+1];
-                matriz_filmes[i+1] = aux;
+    for (int i = 0; i < int(vetor_filmes.size()); i++){
+        if (vetor_filmes[i].fim == vetor_filmes[i+1].fim){
+            if (vetor_filmes[i].inicio > vetor_filmes[i+1].inicio){
+                Filme aux = vetor_filmes[i];
+                vetor_filmes[i] = vetor_filmes[i+1];
+                vetor_filmes[i+1] = aux;
             }
         }
     }
@@ -61,30 +61,30 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
     }
 }
 
-void heuristica_gulosa(vector<Filme> &matriz_filmes, vector<int> &filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &matriz_filmes_vistos, int &filmes_vistos, int qtd_filmes){
+void heuristica_gulosa(vector<Filme> &vetor_filmes, vector<int> &filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &vetor_filmes_vistos, int &filmes_vistos){
 
-    for (int i = 0; i <int(matriz_filmes.size()); i++){
+    for (int i = 0; i <int(vetor_filmes.size()); i++){
         bitset<24> horario_analisado;
-        preenche_bitset(horario_analisado, matriz_filmes[i].inicio-1, matriz_filmes[i].fim-1);
-        if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[matriz_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+        preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
             filmes_vistos++;
-            matriz_filmes_vistos.push_back(matriz_filmes[i]);
-            filmes_por_categoria[matriz_filmes[i].categoria-1]--;
-            preenche_bitset(horarios_disponiveis, matriz_filmes[i].inicio-1, matriz_filmes[i].fim-1);
+            vetor_filmes_vistos.push_back(vetor_filmes[i]);
+            filmes_por_categoria[vetor_filmes[i].categoria-1]--;
+            preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
             return;
         }
     }
 }
 
 
-void aleatorizacao(vector<Filme> &matriz_filmes, vector<int> &filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &matriz_filmes_vistos, int &filmes_vistos){
+void aleatorizacao(vector<Filme> &vetor_filmes, vector<int> &filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &vetor_filmes_vistos, int &filmes_vistos){
     vector<Filme> disponiveis_no_intervalo;
-    if (int(matriz_filmes.size()) > 1) {
-        for (int i = 1; i < int(matriz_filmes.size()); i++){
+    if (int(vetor_filmes.size()) > 1) {
+        for (int i = 1; i < int(vetor_filmes.size()); i++){
             bitset<24> horario_analisado;
-            preenche_bitset(horario_analisado, matriz_filmes[i].inicio-1, matriz_filmes[i].fim-1);
-            if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[matriz_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-                disponiveis_no_intervalo.push_back(matriz_filmes[i]);
+            preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+            if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+                disponiveis_no_intervalo.push_back(vetor_filmes[i]);
             }  
         }
 
@@ -102,7 +102,7 @@ void aleatorizacao(vector<Filme> &matriz_filmes, vector<int> &filmes_por_categor
         }
 
         filmes_vistos++;
-        matriz_filmes_vistos.push_back(disponiveis_no_intervalo[numero_aleatorio]);
+        vetor_filmes_vistos.push_back(disponiveis_no_intervalo[numero_aleatorio]);
         filmes_por_categoria[disponiveis_no_intervalo[numero_aleatorio].categoria-1]--;
         preenche_bitset(horarios_disponiveis, disponiveis_no_intervalo[numero_aleatorio].inicio-1, disponiveis_no_intervalo[numero_aleatorio].fim-1);
 
@@ -118,10 +118,11 @@ int main(){
     cin >> qtd_filmes >> qtd_categorias;
 
     vector<int> filmes_por_categoria(qtd_categorias, 0);
-    vector<Filme> matriz_filmes;
+    Filme filme_vazio = {0, 0, 0};
+    vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
     bitset<24> horarios_disponiveis;
     bitset<24> mascara_horarios(0xFFFFFF);
-    vector<Filme> matriz_filmes_vistos;
+    vector<Filme> vetor_filmes_vistos;
     int filmes_vistos = 0;
 
     for (int i = 0; i < qtd_categorias; i++){
@@ -137,22 +138,22 @@ int main(){
         if (filme.fim == 0){
             filme.fim = 24;
         }
-        if (filme.inicio == -1){
+        if (filme.inicio < 0){
             continue;
         }
-        if (filme.fim == -1){
+        if (filme.fim < 0){
             continue;
         }
-        matriz_filmes.push_back(filme);
+        vetor_filmes[i] = filme;
     }
 
-    ordena_final(matriz_filmes);
-    ordena_inicio(matriz_filmes);
+    ordena_final(vetor_filmes);
+    ordena_inicio(vetor_filmes);
 
     map<int, vector<Filme>> myDict;
 
     for (int i = 0; i < qtd_filmes; i++){
-        myDict[matriz_filmes[i].fim].push_back(matriz_filmes[i]);
+        myDict[vetor_filmes[i].fim].push_back(vetor_filmes[i]);
     }
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -165,17 +166,17 @@ int main(){
             break;
         }
         if (sorteio == 1){
-            heuristica_gulosa(myDict[i], filmes_por_categoria, horarios_disponiveis, matriz_filmes_vistos, filmes_vistos, qtd_filmes);
+            heuristica_gulosa(myDict[i], filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos, filmes_vistos);
         } else
         {   
-            aleatorizacao(myDict[i], filmes_por_categoria, horarios_disponiveis, matriz_filmes_vistos, filmes_vistos);
+            aleatorizacao(myDict[i], filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos, filmes_vistos);
         }
     }
    
     cout << "Foram vistos " << filmes_vistos << " filmes." << endl;
 
-    for (int i = 0; i < int(matriz_filmes_vistos.size()); i++){
-        cout << matriz_filmes_vistos[i].inicio << " " << matriz_filmes_vistos[i].fim << " " << matriz_filmes_vistos[i].categoria << endl;
+    for (int i = 0; i < int(vetor_filmes_vistos.size()); i++){
+        cout << vetor_filmes_vistos[i].inicio << " " << vetor_filmes_vistos[i].fim << " " << vetor_filmes_vistos[i].categoria << endl;
     }
 
 
