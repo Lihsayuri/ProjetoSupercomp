@@ -18,14 +18,11 @@ using std::endl;
 using std::bitset;
 using std::map;
 
-//// DÚVIDAS: O QUE FAZER QUANDO O FILME COMEÇAR E TERMINAR NA MESMA HORA? E SE TIVER DOIS FILMES QUE COMEÇAM E TERMINAM NA MESMA HORA? 
-
 struct Filme{
     int inicio;
     int fim;
     int categoria;
 };
-
 
 void ordena_final(vector<Filme> &vetor_filmes){
     std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
@@ -78,6 +75,7 @@ void heuristica_gulosa(vector<Filme> &vetor_filmes, vector<int> &filmes_por_cate
 
 
 void aleatorizacao(vector<Filme> &vetor_filmes, vector<int> &filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &vetor_filmes_vistos, int &filmes_vistos){
+    // Para aplicar a heuristica aleatória primeiro é preciso gerar um vetor com os filmes disponíveis no intervalo de tempo restante e em seguida é escolhido um filme randomicamente.
     vector<Filme> disponiveis_no_intervalo;
     if (int(vetor_filmes.size()) > 1) {
         for (int i = 1; i < int(vetor_filmes.size()); i++){
@@ -128,10 +126,10 @@ int main(){
     for (int i = 0; i < qtd_categorias; i++){
         cin >> filmes_por_categoria[i];
     }
-
     for (int i = 0; i < qtd_filmes; i++){
         Filme filme;
         cin >> filme.inicio >> filme.fim >> filme.categoria;
+        //Ajuste para o horário de 0h para termos horarios de 1 a 24
         if (filme.inicio == 0){
             filme.inicio = 24;
         }
