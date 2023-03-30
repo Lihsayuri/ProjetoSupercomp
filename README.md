@@ -15,15 +15,15 @@ Saída: Um inteiro representando o número máximo de filmes que podem ser assis
 
 ## Descrição dos documentos do repositório:
 
-- Outputs : pasta que contêm os outputs do projeto.
-- aleatorizacao.cpp e aleatorizacao : código fonte da estratégia de aleatorização e seu executável, respectivamente.
-- gulosa.cpp e gulosa : código fonte da heurística gulosa e seu executável, respectivamente.
-- projeto.cpp e projeto : código fonte da estratégia gulosa e aleatória juntas e seu executável, respectivamente.
-- meu_programa.cpp e meu_programa : código fonte do gerador de entradas e seu executável, respectivamente.
-- callgrind.out.6975 : callgrind do executável gulosa.
-- callgrind.out.7748 : callgrind do executável aleatorizacao.
-- callgrind.out.8941 : callgrind do executável projeto.
-- RelatorioProjeto.ipynb: relatório parcial do projeto
+- `Outputs` : pasta que contêm os outputs do projeto.
+- `aleatorizacao.cpp` e `aleatorizacao` : código fonte da estratégia de aleatorização e seu executável, respectivamente.
+- `gulosa.cpp` e `gulosa` : código fonte da heurística gulosa e seu executável, respectivamente.
+- `projeto.cpp` e `projeto` : código fonte da estratégia gulosa e aleatória juntas e seu executável, respectivamente.
+- `meu_programa.cpp` e `meu_programa` : código fonte do gerador de entradas e seu executável, respectivamente.
+- `callgrind.out.6975` : callgrind do executável gulosa.
+- `callgrind.out.7748` : callgrind do executável aleatorizacao.
+- `callgrind.out.8941` : callgrind do executável projeto.
+- `RelatorioProjeto.ipynb` : relatório parcial do projeto
 
 ## Link do Drive para baixar os arquivos de entrada
 
