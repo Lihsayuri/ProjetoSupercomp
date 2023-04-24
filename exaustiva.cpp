@@ -82,11 +82,20 @@ int calcula_delta(int horario_fim, int horario_inicio){
 
 
 
-void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> filmes, int potencial) {
+void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &filmes, int potencial) {
     if (int(filmes.size()) > melhores_filmes.qtd_filmes){
         melhores_filmes.filmes = filmes;
         melhores_filmes.qtd_filmes = int(filmes.size());
     }
+
+    if (i == int(vetor_filmes.size())) {
+        return;
+    }
+
+    // cout << "potencial: " << potencial << endl;
+    // cout << "melhores_filmes.qtd_filmes: " << melhores_filmes.qtd_filmes << endl;
+    // cout << "i: " << i << endl;
+    // cout << "vetor_filmes.size(): " << filmes.size() << endl;
     
     if (horarios_disponiveis == 0xFFFFFF){
         return;
@@ -101,7 +110,11 @@ void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_
 
     bitset<24> horario_analisado;
     preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+    cout << "horario_analisado: " << horario_analisado << endl;
+    cout << "horarios_disponiveis: " << horarios_disponiveis << endl;
+
     if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+        cout << "ENTROOOOOOU" << endl;
         filmes.push_back(vetor_filmes[i]);
         filmes_por_categoria[vetor_filmes[i].categoria-1]--;
         preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
@@ -117,7 +130,6 @@ void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_
 }
 
 
-
 int main(){
     int qtd_filmes, qtd_categorias;
     cin >> qtd_filmes >> qtd_categorias;
@@ -125,7 +137,7 @@ int main(){
     vector<int> filmes_por_categoria(qtd_categorias, 0);
     Filme filme_vazio = {0, 0, 0};
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
-    bitset<24> horarios_disponiveis;
+    bitset<24> horarios_disponiveis(0x000000);
     bitset<24> mascara_horarios(0xFFFFFF);
     vector<Filme> vetor_filmes_vistos;
     int filmes_vistos = 0;
