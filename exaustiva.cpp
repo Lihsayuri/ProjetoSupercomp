@@ -88,10 +88,6 @@ void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_
         melhores_filmes.qtd_filmes = int(filmes.size());
     }
 
-    if (i == int(vetor_filmes.size())) {
-        return;
-    }
-
     // cout << "potencial: " << potencial << endl;
     // cout << "melhores_filmes.qtd_filmes: " << melhores_filmes.qtd_filmes << endl;
     // cout << "i: " << i << endl;
@@ -105,16 +101,13 @@ void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_
         return;
     }
 
-    busca_exaustiva(i+1, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes, potencial);
+    vector<Filme> filmes2 = filmes;
 
 
     bitset<24> horario_analisado;
     preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
-    cout << "horario_analisado: " << horario_analisado << endl;
-    cout << "horarios_disponiveis: " << horarios_disponiveis << endl;
-
+    
     if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-        cout << "ENTROOOOOOU" << endl;
         filmes.push_back(vetor_filmes[i]);
         filmes_por_categoria[vetor_filmes[i].categoria-1]--;
         preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
@@ -125,6 +118,9 @@ void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_
     }
 
     busca_exaustiva(i+1, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes, potencial);
+
+    busca_exaustiva(i+1, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes2, potencial);
+
 
     
 }
@@ -176,6 +172,7 @@ int main(){
     
     busca_exaustiva(0, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos, 24);
 
+    cout << "Esses foram os filmes adicionados no schedule "  << melhores_filmes.qtd_filmes << endl;
 
     for (int i = 0; i < (melhores_filmes.qtd_filmes); i++){
         cout << melhores_filmes.filmes[i].inicio << " " << melhores_filmes.filmes[i].fim << " " << melhores_filmes.filmes[i].categoria << endl;
