@@ -82,47 +82,26 @@ int calcula_delta(int horario_fim, int horario_inicio){
 
 
 
-void busca_exaustiva(int i, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<Filme> &filmes, int potencial) {
-    if (int(filmes.size()) > melhores_filmes.qtd_filmes){
-        melhores_filmes.filmes = filmes;
-        melhores_filmes.qtd_filmes = int(filmes.size());
-    }
-
-    // cout << "potencial: " << potencial << endl;
-    // cout << "melhores_filmes.qtd_filmes: " << melhores_filmes.qtd_filmes << endl;
-    // cout << "i: " << i << endl;
-    // cout << "vetor_filmes.size(): " << filmes.size() << endl;
-    
+void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<int> &filmes) {
     if (horarios_disponiveis == 0xFFFFFF){
         return;
     }
-
-    if (potencial < melhores_filmes.qtd_filmes){
+    if (i >= n-996){
         return;
     }
-
-    vector<Filme> filmes2 = filmes;
-
-
+    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes);
+    
     bitset<24> horario_analisado;
     preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
     
     if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-        filmes.push_back(vetor_filmes[i]);
+        for(int j = vetor_filmes[i].inicio-1; j < vetor_filmes[i].fim-1; j++){
+            horarios_disponiveis.set(j);
+        }
         filmes_por_categoria[vetor_filmes[i].categoria-1]--;
         preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
-        // conta o número de 0 no bitset de horários disponíveis
-        int delta = calcula_delta(vetor_filmes[i].fim, vetor_filmes[i].inicio);
-        potencial -= delta - 1;
-
     }
-
-    busca_exaustiva(i+1, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes, potencial);
-
-    busca_exaustiva(i+1, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes2, potencial);
-
-
-    
+    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes);
 }
 
 
@@ -135,8 +114,8 @@ int main(){
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
     bitset<24> horarios_disponiveis(0x000000);
     bitset<24> mascara_horarios(0xFFFFFF);
-    vector<Filme> vetor_filmes_vistos;
-    int filmes_vistos = 0;
+    //vector<Filme> vetor_filmes_vistos;
+    vector<int> vetor_filmes_vistos(24, -1);
 
     for (int i = 0; i < qtd_categorias; i++){
         cin >> filmes_por_categoria[i];
@@ -163,14 +142,7 @@ int main(){
     ordena_final(vetor_filmes);
     ordena_inicio(vetor_filmes);
 
-    map<int, vector<Filme>> myDict;
-
-    for (int i = 0; i < qtd_filmes; i++){
-        myDict[vetor_filmes[i].fim].push_back(vetor_filmes[i]);
-    }
-
-    
-    busca_exaustiva(0, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos, 24);
+    busca_exaustiva(0, qtd_filmes, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos);
 
     cout << "Esses foram os filmes adicionados no schedule "  << melhores_filmes.qtd_filmes << endl;
 
