@@ -82,26 +82,31 @@ int calcula_delta(int horario_fim, int horario_inicio){
 
 
 
-void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<int> &filmes) {
+void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<vector<int>> &vetor_schedules, vector<int> filmes) {
     if (horarios_disponiveis == 0xFFFFFF){
+        vetor_schedules.push_back(filmes);
         return;
     }
     if (i >= n-996){
+        vetor_schedules.push_back(filmes);
         return;
     }
-    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes);
+    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, filmes);
     
     bitset<24> horario_analisado;
     preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
     
     if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-        for(int j = vetor_filmes[i].inicio-1; j < vetor_filmes[i].fim-1; j++){
+        for(int j = vetor_filmes[i].inicio-1; j <= vetor_filmes[i].fim-1; j++){
+            cout << "j: " << j << endl;
+            cout << "i: " << i << endl;
+            filmes[j] = i;
             horarios_disponiveis.set(j);
         }
         filmes_por_categoria[vetor_filmes[i].categoria-1]--;
         preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
     }
-    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, filmes);
+    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, filmes);
 }
 
 
@@ -116,6 +121,7 @@ int main(){
     bitset<24> mascara_horarios(0xFFFFFF);
     //vector<Filme> vetor_filmes_vistos;
     vector<int> vetor_filmes_vistos(24, -1);
+    vector<vector<int>> vetor_schedules;
 
     for (int i = 0; i < qtd_categorias; i++){
         cin >> filmes_por_categoria[i];
@@ -142,8 +148,15 @@ int main(){
     ordena_final(vetor_filmes);
     ordena_inicio(vetor_filmes);
 
-    busca_exaustiva(0, qtd_filmes, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_filmes_vistos);
+    busca_exaustiva(0, qtd_filmes, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, vetor_filmes_vistos);
 
+    for(int i = 0; i < int(vetor_schedules.size()); i++){
+        cout << "Schedule " << i+1 << ": ";
+        for (int j = 0; j < int(vetor_schedules[i].size()); j++){
+            cout << vetor_schedules[i][j] << " ";
+        }
+        cout << endl;
+    }
     cout << "Esses foram os filmes adicionados no schedule "  << melhores_filmes.qtd_filmes << endl;
 
     for (int i = 0; i < (melhores_filmes.qtd_filmes); i++){
