@@ -82,15 +82,18 @@ int calcula_delta(int horario_fim, int horario_inicio){
 
 
 
-void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> &horarios_disponiveis, vector<vector<int>> &vetor_schedules, vector<int> filmes) {
+void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> horarios_disponiveis, vector<vector<int>> &vetor_schedules, vector<int> filmes) {
     if (horarios_disponiveis == 0xFFFFFF){
         vetor_schedules.push_back(filmes);
         return;
     }
-    if (i >= n-996){
+    if (i >= n){
         vetor_schedules.push_back(filmes);
         return;
     }
+
+    // vetor_schedules.push_back(filmes);
+
     busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, filmes);
     
     bitset<24> horario_analisado;
@@ -157,10 +160,32 @@ int main(){
         }
         cout << endl;
     }
-    cout << "Esses foram os filmes adicionados no schedule "  << melhores_filmes.qtd_filmes << endl;
+    cout << "Esses foram os filmes adicionados no schedule "  << vetor_schedules.size() << endl;
 
-    for (int i = 0; i < (melhores_filmes.qtd_filmes); i++){
-        cout << melhores_filmes.filmes[i].inicio << " " << melhores_filmes.filmes[i].fim << " " << melhores_filmes.filmes[i].categoria << endl;
+    vector<int> melhor_schedule;
+    for (int i = 0; i < int(vetor_schedules.size()); i++){
+        vector <int> filmes;
+        for (int j = 0; j < int(vetor_schedules[i].size()); j++){
+            if ((vetor_schedules[i][j] != -1) && find(filmes.begin(), filmes.end(), vetor_schedules[i][j]) == filmes.end()){
+                filmes.push_back(vetor_schedules[i][j]);
+            }
+        }
+
+        if (int(filmes.size()) > int(melhor_schedule.size())){
+            melhor_schedule = filmes;
+        }  
+    }
+
+
+    melhores_filmes.qtd_filmes = melhor_schedule.size();
+    
+
+    cout << "Quantidade de filmes: " << melhores_filmes.qtd_filmes << endl;
+    cout << "Melhor schedule: ";
+
+    for (int i = 0; i < melhores_filmes.qtd_filmes; i++){
+        cout << melhor_schedule[i] << " ";
+        cout << "Filme: " << vetor_filmes[melhor_schedule[i]].inicio << " " << vetor_filmes[melhor_schedule[i]].fim << " " << vetor_filmes[melhor_schedule[i]].categoria << endl;
     }
 
 
