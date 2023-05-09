@@ -71,23 +71,10 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
     }
 }
 
-
-int calcula_delta(int horario_fim, int horario_inicio){
-    if (horario_fim > horario_inicio){
-        return horario_fim - horario_inicio;
-    }
-    else if (horario_fim < horario_inicio){
-        return 24 - (horario_inicio - horario_fim);
-    }
-    else{
-        return 1; // retorna 1 só pra filmes que começam e terminam no mesmo horário e aí não muda o potencial
-    }
-}
-
 void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
-    int todas_combinacoes= 2<<(n-1);
+    unsigned long int todas_combinacoes= 2<<(n-1)-1;    // 1000 = 2^n
+    // #pragma omp parallel for
     for (int i = 0; i < todas_combinacoes; i++){
-        bool good_schedule = true;
         int num_films = 0;
         vector<int> vetor_id_filmes_vistos;
         vector<int> filmes_por_categoria_aux = filmes_por_categoria;
@@ -103,14 +90,11 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
                     num_films++;
                     vetor_id_filmes_vistos.push_back(j);
                 }
-                else{
-                    good_schedule = false;
-                    break;
-                }
             }
 
         }
-        if (num_films > melhores_filmes.qtd_filmes && good_schedule){
+        // #pragma omp critical
+        if (num_films > melhores_filmes.qtd_filmes ){
             melhores_filmes.qtd_filmes = num_films;
             melhores_filmes.filmes = vetor_id_filmes_vistos;
         }
@@ -177,4 +161,5 @@ int main(){
 
 
 // g++ -Wl,-z,stack-size=4194304 exaustiva.cpp -o exaustiva
+//  g++ -Wl,-z,stack-size=6000000000 -fopenmp exaustiva.cpp -o exaustiva
 // user@monstrinho:~/ProjetoSupercomp$ ./exaustiva 
