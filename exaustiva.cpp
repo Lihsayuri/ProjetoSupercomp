@@ -37,7 +37,6 @@ struct melhorSchedule{
 
 melhorSchedule melhores_filmes;
 
-
 void ordena_final(vector<Filme> &vetor_filmes){
     std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
 		return a.fim < b.fim;
@@ -91,15 +90,15 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
         bool good_schedule = true;
         int num_films = 0;
         vector<int> vetor_id_filmes_vistos;
+        vector<int> filmes_por_categoria_aux = filmes_por_categoria;
         bitset<64> filmes(i);
-        //filmes = filmes <<(64-n);
         bitset<24> horarios_disponiveis(0x000000);
-        for (int j = 0; j <= n; j++){
+        for (int j = 0; j < n; j++){
             if (filmes[j] == 1){
                 bitset<24> horario_analisado;
                 preenche_bitset(horario_analisado, vetor_filmes[j].inicio, vetor_filmes[j].fim);
-                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[j].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-                    filmes_por_categoria[vetor_filmes[j].categoria-1]--;
+                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+                    filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
                     preenche_bitset(horarios_disponiveis, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
                     num_films++;
                     vetor_id_filmes_vistos.push_back(j);
@@ -112,7 +111,6 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
 
         }
         if (num_films > melhores_filmes.qtd_filmes && good_schedule){
-            cout << "filmes" << filmes << endl;
             melhores_filmes.qtd_filmes = num_films;
             melhores_filmes.filmes = vetor_id_filmes_vistos;
         }
@@ -123,13 +121,14 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
 int main(){
     int qtd_filmes, qtd_categorias;
     cin >> qtd_filmes >> qtd_categorias;
+    melhores_filmes.filmes = vector<int>();
+    melhores_filmes.qtd_filmes = 0;
 
     vector<int> filmes_por_categoria(qtd_categorias, 0);
     Filme filme_vazio = {0, 0, 0};
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
     bitset<24> horarios_disponiveis(0x000000);
     bitset<24> mascara_horarios(0xFFFFFF);
-    //vector<Filme> vetor_filmes_vistos;
     vector<int> vetor_filmes_vistos(24, -1);
     vector<vector<int>> vetor_schedules;
 
@@ -175,3 +174,7 @@ int main(){
 
     return melhores_filmes.qtd_filmes;
 }
+
+
+// g++ -Wl,-z,stack-size=4194304 exaustiva.cpp -o exaustiva
+// user@monstrinho:~/ProjetoSupercomp$ ./exaustiva 
