@@ -9,6 +9,8 @@
 #include <chrono>
 #include <fstream>
 #include <bitset>
+#include <stack>
+#include <utility>
 #include <map>
 #include <ctime>
 #include <omp.h>
@@ -18,6 +20,9 @@ using std::cout;
 using std::endl;
 using std::bitset;
 using std::map;
+using std::stack;
+using std::pair;
+using std::make_pair;
 
 struct Filme{
     int inicio;
@@ -26,12 +31,11 @@ struct Filme{
 };
 
 struct melhorSchedule{
-    vector<Filme> filmes;
+    vector<int> filmes;
     int qtd_filmes;
 };
 
 melhorSchedule melhores_filmes;
-
 
 void ordena_final(vector<Filme> &vetor_filmes){
     std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
@@ -80,49 +84,51 @@ int calcula_delta(int horario_fim, int horario_inicio){
     }
 }
 
+void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
+    int todas_combinacoes= 2<<(n-1);
+    for (int i = 0; i < todas_combinacoes; i++){
+        bool good_schedule = true;
+        int num_films = 0;
+        vector<int> vetor_id_filmes_vistos;
+        vector<int> filmes_por_categoria_aux = filmes_por_categoria;
+        bitset<64> filmes(i);
+        bitset<24> horarios_disponiveis(0x000000);
+        for (int j = 0; j < n; j++){
+            if (filmes[j] == 1){
+                bitset<24> horario_analisado;
+                preenche_bitset(horario_analisado, vetor_filmes[j].inicio, vetor_filmes[j].fim);
+                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+                    filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
+                    preenche_bitset(horarios_disponiveis, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
+                    num_films++;
+                    vetor_id_filmes_vistos.push_back(j);
+                }
+                else{
+                    good_schedule = false;
+                    break;
+                }
+            }
 
-
-void busca_exaustiva(int i, int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria, bitset<24> horarios_disponiveis, vector<vector<int>> &vetor_schedules, vector<int> filmes) {
-    if (horarios_disponiveis == 0xFFFFFF){
-        vetor_schedules.push_back(filmes);
-        return;
-    }
-    if (i >= n){
-        vetor_schedules.push_back(filmes);
-        return;
-    }
-
-    // vetor_schedules.push_back(filmes);
-
-    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, filmes);
-    
-    bitset<24> horario_analisado;
-    preenche_bitset(horario_analisado, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
-    
-    if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria[vetor_filmes[i].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
-        for(int j = vetor_filmes[i].inicio-1; j <= vetor_filmes[i].fim-1; j++){
-            cout << "j: " << j << endl;
-            cout << "i: " << i << endl;
-            filmes[j] = i;
-            horarios_disponiveis.set(j);
         }
-        filmes_por_categoria[vetor_filmes[i].categoria-1]--;
-        preenche_bitset(horarios_disponiveis, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        if (num_films > melhores_filmes.qtd_filmes && good_schedule){
+            melhores_filmes.qtd_filmes = num_films;
+            melhores_filmes.filmes = vetor_id_filmes_vistos;
+        }
     }
-    busca_exaustiva(i+1, n, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, filmes);
 }
 
 
 int main(){
     int qtd_filmes, qtd_categorias;
     cin >> qtd_filmes >> qtd_categorias;
+    melhores_filmes.filmes = vector<int>();
+    melhores_filmes.qtd_filmes = 0;
 
     vector<int> filmes_por_categoria(qtd_categorias, 0);
     Filme filme_vazio = {0, 0, 0};
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
     bitset<24> horarios_disponiveis(0x000000);
     bitset<24> mascara_horarios(0xFFFFFF);
-    //vector<Filme> vetor_filmes_vistos;
     vector<int> vetor_filmes_vistos(24, -1);
     vector<vector<int>> vetor_schedules;
 
@@ -151,43 +157,24 @@ int main(){
     ordena_final(vetor_filmes);
     ordena_inicio(vetor_filmes);
 
-    busca_exaustiva(0, qtd_filmes, vetor_filmes, filmes_por_categoria, horarios_disponiveis, vetor_schedules, vetor_filmes_vistos);
+    busca_exaustiva(qtd_filmes, vetor_filmes, filmes_por_categoria);
 
-    for(int i = 0; i < int(vetor_schedules.size()); i++){
-        cout << "Schedule " << i+1 << ": ";
-        for (int j = 0; j < int(vetor_schedules[i].size()); j++){
-            cout << vetor_schedules[i][j] << " ";
-        }
-        cout << endl;
+    vector<int> melhor_schedule = melhores_filmes.filmes;
+    for (int i = 0; i < int(melhor_schedule.size()); i++){
+        cout << melhor_schedule[i] << " ";
     }
-    cout << "Esses foram os filmes adicionados no schedule "  << vetor_schedules.size() << endl;
-
-    vector<int> melhor_schedule;
-    for (int i = 0; i < int(vetor_schedules.size()); i++){
-        vector <int> filmes;
-        for (int j = 0; j < int(vetor_schedules[i].size()); j++){
-            if ((vetor_schedules[i][j] != -1) && find(filmes.begin(), filmes.end(), vetor_schedules[i][j]) == filmes.end()){
-                filmes.push_back(vetor_schedules[i][j]);
-            }
-        }
-
-        if (int(filmes.size()) > int(melhor_schedule.size())){
-            melhor_schedule = filmes;
-        }  
-    }
-
-
-    melhores_filmes.qtd_filmes = melhor_schedule.size();
-    
 
     cout << "Quantidade de filmes: " << melhores_filmes.qtd_filmes << endl;
-    cout << "Melhor schedule: ";
+    cout << "Melhor schedule: " << endl;
 
     for (int i = 0; i < melhores_filmes.qtd_filmes; i++){
-        cout << melhor_schedule[i] << " ";
         cout << "Filme: " << vetor_filmes[melhor_schedule[i]].inicio << " " << vetor_filmes[melhor_schedule[i]].fim << " " << vetor_filmes[melhor_schedule[i]].categoria << endl;
     }
 
 
     return melhores_filmes.qtd_filmes;
 }
+
+
+// g++ -Wl,-z,stack-size=4194304 exaustiva.cpp -o exaustiva
+// user@monstrinho:~/ProjetoSupercomp$ ./exaustiva 
