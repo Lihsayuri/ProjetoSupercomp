@@ -14,6 +14,13 @@
 #include <map>
 #include <ctime>
 #include <omp.h>
+ // imports do thrust
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#
+#include <thrust/generate.h>
+#include <thrust/functional.h>
+#include <thrust/copy.h> 
 using std::vector;
 using std::cin;
 using std::cout;
@@ -57,31 +64,52 @@ void ordena_inicio(vector<Filme> &vetor_filmes){
     }
 }
 
-void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
-    for (int i = 0; i < 24; i++){
-        if (i >= inicio && i < fim){
-            horarios_disponiveis.set(i);
-        }
-        else if (inicio > fim && (i >= inicio || i < fim)){// podemos assistir um filme das 23 as 1. Dessa forma, passamos assistindo às 23h e 24h inteiras. Mas não a 1h. 
-            horarios_disponiveis.set(i);
-        }
-        else if(inicio == fim){
-            horarios_disponiveis.set(inicio);
+// void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
+//     for (int i = 0; i < 24; i++){
+//         if (i >= inicio && i < fim){
+//             horarios_disponiveis.set(i);
+//         }
+//         else if (inicio > fim && (i >= inicio || i < fim)){// podemos assistir um filme das 23 as 1. Dessa forma, passamos assistindo às 23h e 24h inteiras. Mas não a 1h. 
+//             horarios_disponiveis.set(i);
+//         }
+//         else if(inicio == fim){
+//             horarios_disponiveis.set(inicio);
+//         }
+//     }
+// }
+
+struct bitset_horarios{
+    __host__ __device__
+    void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
+        for (int i = 0; i < 24; i++){
+            if (i >= inicio && i < fim){
+                horarios_disponiveis.set(i);
+            }
+            else if (inicio > fim && (i >= inicio || i < fim)){// podemos assistir um filme das 23 as 1. Dessa forma, passamos assistindo às 23h e 24h inteiras. Mas não a 1h. 
+                horarios_disponiveis.set(i);
+            }
+            else if(inicio == fim){
+                horarios_disponiveis.set(inicio);
+            }
         }
     }
 }
 
 
-void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
+void busca_exaustiva(int n, thrust::host_vector<Filme> &vetor_filmes, thrust::host_vector<int> filmes_por_categoria){
     long int todas_combinacoes = pow(2, n) ;
     cout << todas_combinacoes << endl;
+
+    // Criar os vetores de filmes e categorias na GPU
+    thrust::device_vector<Filme> d_vetor_filmes = vetor_filmes;
+    thrust::device_vector<int> d_filmes_por_categoria = filmes_por_categoria;
+
     long int i; 
-    #pragma omp parallel for 
     for (i = 0; i < todas_combinacoes; i++){
         int num_films = 0;
-        vector<int> vetor_id_filmes_vistos;
-        vector<int> filmes_por_categoria_aux = filmes_por_categoria;
-        bitset<64> filmes(i);
+        thrust::device_vector<int> vetor_id_filmes_vistos;
+        thrust::device_vector<int> filmes_por_categoria_aux = filmes_por_categoria;
+        thrust::device_bitset<64> filmes(i);
         bitset<24> horarios_disponiveis(0x000000);
         for (int j = 0; j < n; j++){
             if (filmes[j] == 1){
@@ -96,7 +124,6 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
             }
 
         }
-        #pragma omp critical
         if (num_films > melhores_filmes.qtd_filmes ){
             melhores_filmes.qtd_filmes = num_films;
             melhores_filmes.filmes = vetor_id_filmes_vistos;
