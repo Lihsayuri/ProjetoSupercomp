@@ -73,12 +73,12 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
 
 
 void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
-    long unsigned int todas_combinacoes = pow(2, n-1)-1 ;
-    // cout << todas_combinacoes << endl;
-    #pragma omp parallel for
-    for (long unsigned i = 0; i < todas_combinacoes; i++){
+    long int todas_combinacoes = pow(2, n) ;
+    cout << todas_combinacoes << endl;
+    long int i; 
+    #pragma omp parallel for 
+    for (i = 0; i < todas_combinacoes; i++){
         int num_films = 0;
-        // cout << i << endl;
         vector<int> vetor_id_filmes_vistos;
         vector<int> filmes_por_categoria_aux = filmes_por_categoria;
         bitset<64> filmes(i);
