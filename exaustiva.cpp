@@ -30,6 +30,11 @@ struct Filme{
     int categoria;
 };
 
+struct Filme_processado{
+    int categoria;
+    bitset<24> horario;
+};
+
 struct melhorSchedule{
     vector<int> filmes;
     int qtd_filmes;
@@ -72,7 +77,7 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
 }
 
 
-void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
+void busca_exaustiva(int n, vector<Filme_processado> &vetor_filmes, vector<int> filmes_por_categoria){
     long int todas_combinacoes = pow(2, n) ;
     cout << todas_combinacoes << endl;
     long int i; 
@@ -85,11 +90,10 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
         bitset<24> horarios_disponiveis(0x000000);
         for (int j = 0; j < n; j++){
             if (filmes[j] == 1){
-                bitset<24> horario_analisado;
-                preenche_bitset(horario_analisado, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
-                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+                bitset<24> horario_analisado = horarios_disponiveis & vetor_filmes[j].horario;
+                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){
                     filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
-                    preenche_bitset(horarios_disponiveis, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
+                    horarios_disponiveis |= vetor_filmes[j].horario;
                     num_films++;
                     vetor_id_filmes_vistos.push_back(j);
                 }
@@ -114,10 +118,8 @@ int main(){
     vector<int> filmes_por_categoria(qtd_categorias, 0);
     Filme filme_vazio = {0, 0, 0};
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
-    bitset<24> horarios_disponiveis(0x000000);
-    bitset<24> mascara_horarios(0xFFFFFF);
-    vector<int> vetor_filmes_vistos(24, -1);
-    vector<vector<int>> vetor_schedules;
+    Filme_processado filme_processado_vazio = {0, 0x000000};
+    vector<Filme_processado> vetor_filmes_processado (qtd_filmes, filme_processado_vazio);
 
     for (int i = 0; i < qtd_categorias; i++){
         cin >> filmes_por_categoria[i];
@@ -126,25 +128,21 @@ int main(){
     for (int i = 0; i < qtd_filmes; i++){
         Filme filme;
         cin >> filme.inicio >> filme.fim >> filme.categoria;
-        if (filme.inicio == 0){
-            filme.inicio = 24;
-        }
-        if (filme.fim == 0){
-            filme.fim = 24;
-        }
-        if (filme.inicio < 0){
-            continue;
-        }
-        if (filme.fim < 0){
-            continue;
-        }
+        if (filme.inicio == 0) filme.inicio = 24;
+        if (filme.fim == 0) filme.fim = 24;
+        if (filme.inicio < 0 || filme.fim < 0) continue;
+
         vetor_filmes[i] = filme;
     }
 
-    ordena_final(vetor_filmes);
-    ordena_inicio(vetor_filmes);
+    for (int i = 0; i < qtd_filmes; i++){
+        Filme_processado filme_processado;
+        filme_processado.categoria = vetor_filmes[i].categoria;
+        preenche_bitset(filme_processado.horario, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        vetor_filmes_processado[i] = filme_processado;
+    }
 
-    busca_exaustiva(qtd_filmes, vetor_filmes, filmes_por_categoria);
+    busca_exaustiva(qtd_filmes, vetor_filmes_processado, filmes_por_categoria);
 
     vector<int> melhor_schedule = melhores_filmes.filmes;
     for (int i = 0; i < int(melhor_schedule.size()); i++){
