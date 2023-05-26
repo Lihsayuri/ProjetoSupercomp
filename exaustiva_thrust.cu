@@ -179,3 +179,4 @@ int main(){
 // g++ -Wl,-z,stack-size=4194304 exaustiva.cpp -o exaustiva
 //  g++ -Wl,-z,stack-size=6000000000 -fopenmp exaustiva.cpp -o exaustiva
 // user@monstrinho:~/ProjetoSupercomp$ ./exaustiva 
+// nvcc -arch=sm_70 -rdc=true -o exaustiva_thrust exaustiva_thrust.cu
