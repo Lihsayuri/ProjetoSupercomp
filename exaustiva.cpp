@@ -30,12 +30,15 @@ struct Filme{
     int categoria;
 };
 
-struct melhorSchedule{
+struct FilmeProcessado{
+    int categoria;
+    bitset<24> horario;
+};
+
+struct StructSchedule{
     vector<int> filmes;
     int qtd_filmes;
 };
-
-melhorSchedule melhores_filmes;
 
 void ordena_final(vector<Filme> &vetor_filmes){
     std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
@@ -72,35 +75,33 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
 }
 
 
-void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_categoria){
-    long int todas_combinacoes = pow(2, n) ;
+void busca_exaustiva(int n, vector<FilmeProcessado> &vetor_filmes, vector<int> filmes_por_categoria, vector<bitset<64>> &vetor_schedules){
+    long int todas_combinacoes = pow(2, n);
     cout << todas_combinacoes << endl;
-    long int i; 
-    #pragma omp parallel for 
-    for (i = 0; i < todas_combinacoes; i++){
-        int num_films = 0;
-        vector<int> vetor_id_filmes_vistos;
-        vector<int> filmes_por_categoria_aux = filmes_por_categoria;
-        bitset<64> filmes(i);
-        bitset<24> horarios_disponiveis(0x000000);
-        for (int j = 0; j < n; j++){
-            if (filmes[j] == 1){
-                bitset<24> horario_analisado;
-                preenche_bitset(horario_analisado, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
-                if ((!(horarios_disponiveis & horario_analisado).any()) && (filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){   // Retorna true se algum dos bits do bitset for 1
+    long int i;
+    #pragma omp parallel 
+    { 
+        vector<bitset<64>> vetor_schedules_privado;
+        #pragma omp parallel for private(vetor_schedules) 
+        for (i = 0; i < todas_combinacoes; i++){
+            vector<int> filmes_por_categoria_aux = filmes_por_categoria;
+            bitset<64> filmes(i);
+            bitset<24> horarios_disponiveis;
+            for (int j = 0; j < n; j++){
+                if (filmes[j] == 1){
+                    bitset<24> horario_analisado = horarios_disponiveis & vetor_filmes[j].horario;
+                    if ((horario_analisado != 0)) break;
+                    if ((filmes_por_categoria_aux[vetor_filmes[j].categoria-1] == 0)) break;
                     filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
-                    preenche_bitset(horarios_disponiveis, vetor_filmes[j].inicio-1, vetor_filmes[j].fim-1);
-                    num_films++;
-                    vetor_id_filmes_vistos.push_back(j);
+                    horarios_disponiveis |= vetor_filmes[j].horario;
+                }
+                if (j == n-1){
+                    vetor_schedules_privado.push_back(filmes);
                 }
             }
-
         }
         #pragma omp critical
-        if (num_films > melhores_filmes.qtd_filmes ){
-            melhores_filmes.qtd_filmes = num_films;
-            melhores_filmes.filmes = vetor_id_filmes_vistos;
-        }
+        vetor_schedules.insert(vetor_schedules.end(), vetor_schedules_privado.begin(), vetor_schedules_privado.end());
     }
 }
 
@@ -108,16 +109,14 @@ void busca_exaustiva(int n, vector<Filme> &vetor_filmes, vector<int> filmes_por_
 int main(){
     int qtd_filmes, qtd_categorias;
     cin >> qtd_filmes >> qtd_categorias;
-    melhores_filmes.filmes = vector<int>();
-    melhores_filmes.qtd_filmes = 0;
 
     vector<int> filmes_por_categoria(qtd_categorias, 0);
     Filme filme_vazio = {0, 0, 0};
     vector<Filme> vetor_filmes (qtd_filmes, filme_vazio);
-    bitset<24> horarios_disponiveis(0x000000);
-    bitset<24> mascara_horarios(0xFFFFFF);
-    vector<int> vetor_filmes_vistos(24, -1);
-    vector<vector<int>> vetor_schedules;
+    FilmeProcessado filme_processado_vazio = {0, 0x000000};
+    vector<FilmeProcessado> vetor_filmes_processado (qtd_filmes, filme_processado_vazio);
+
+    vector<bitset<64>> vetor_schedules;
 
     for (int i = 0; i < qtd_categorias; i++){
         cin >> filmes_por_categoria[i];
@@ -126,30 +125,48 @@ int main(){
     for (int i = 0; i < qtd_filmes; i++){
         Filme filme;
         cin >> filme.inicio >> filme.fim >> filme.categoria;
-        if (filme.inicio == 0){
-            filme.inicio = 24;
-        }
-        if (filme.fim == 0){
-            filme.fim = 24;
-        }
-        if (filme.inicio < 0){
-            continue;
-        }
-        if (filme.fim < 0){
-            continue;
-        }
+        if (filme.inicio == 0) filme.inicio = 24;
+        if (filme.fim == 0) filme.fim = 24;
+        if (filme.inicio < 0 || filme.fim < 0) continue;
+
         vetor_filmes[i] = filme;
     }
 
-    ordena_final(vetor_filmes);
-    ordena_inicio(vetor_filmes);
-
-    busca_exaustiva(qtd_filmes, vetor_filmes, filmes_por_categoria);
-
-    vector<int> melhor_schedule = melhores_filmes.filmes;
-    for (int i = 0; i < int(melhor_schedule.size()); i++){
-        cout << melhor_schedule[i] << " ";
+    for (int i = 0; i < qtd_filmes; i++){
+        FilmeProcessado filme_processado;
+        filme_processado.categoria = vetor_filmes[i].categoria;
+        preenche_bitset(filme_processado.horario, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        vetor_filmes_processado[i] = filme_processado;
     }
+
+    busca_exaustiva(qtd_filmes, vetor_filmes_processado, filmes_por_categoria, vetor_schedules);
+
+    int max = 0;
+    int indice_melhor_schedule = 0;
+    int qtd_schedules = vetor_schedules.size();
+    vector<StructSchedule> vetor_struct_schedules(qtd_schedules); 
+ 
+    for (int i = 0; i < qtd_schedules; i++){
+        StructSchedule schedule;
+        schedule.qtd_filmes = 0;
+        for (int j = 0; j < 64; j++){
+            if (vetor_schedules[i][j] == 1) {
+                schedule.filmes.push_back(j);
+                schedule.qtd_filmes++;
+            } 
+        }
+        vetor_struct_schedules[i] = schedule;
+    }
+
+    for (int i = 0; i < qtd_schedules; i++){
+        if (vetor_struct_schedules[i].qtd_filmes > max){
+            max = vetor_struct_schedules[i].qtd_filmes;
+            indice_melhor_schedule = i;
+        }
+    }
+
+    StructSchedule melhores_filmes = vetor_struct_schedules[indice_melhor_schedule];
+    vector<int> melhor_schedule = melhores_filmes.filmes;
 
     cout << "Quantidade de filmes: " << melhores_filmes.qtd_filmes << endl;
     cout << "Melhor schedule: " << endl;
