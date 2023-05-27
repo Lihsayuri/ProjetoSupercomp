@@ -76,29 +76,32 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
 
 
 void busca_exaustiva(int n, vector<FilmeProcessado> &vetor_filmes, vector<int> filmes_por_categoria, vector<bitset<64>> &vetor_schedules){
-    long int todas_combinacoes = pow(2, n) ;
+    long int todas_combinacoes = pow(2, n);
     cout << todas_combinacoes << endl;
-    long int i; 
-    #pragma omp parallel for 
-    for (i = 0; i < todas_combinacoes; i++){
-        int num_films = 0;
-        vector<int> filmes_por_categoria_aux = filmes_por_categoria;
-        bitset<64> filmes(i);
-        bitset<24> horarios_disponiveis(0x000000);
-        for (int j = 0; j < n; j++){
-            if (filmes[j] == 1){
-                bitset<24> horario_analisado = horarios_disponiveis & vetor_filmes[j].horario;
-                if ((horario_analisado != 0) || !(filmes_por_categoria_aux[vetor_filmes[j].categoria-1] > 0)){
-                    break;
+    long int i;
+    #pragma omp parallel 
+    { 
+        vector<bitset<64>> vetor_schedules_privado;
+        #pragma omp parallel for private(vetor_schedules) 
+        for (i = 0; i < todas_combinacoes; i++){
+            vector<int> filmes_por_categoria_aux = filmes_por_categoria;
+            bitset<64> filmes(i);
+            bitset<24> horarios_disponiveis;
+            for (int j = 0; j < n; j++){
+                if (filmes[j] == 1){
+                    bitset<24> horario_analisado = horarios_disponiveis & vetor_filmes[j].horario;
+                    if ((horario_analisado != 0)) break;
+                    if ((filmes_por_categoria_aux[vetor_filmes[j].categoria-1] == 0)) break;
+                    filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
+                    horarios_disponiveis |= vetor_filmes[j].horario;
                 }
-                filmes_por_categoria_aux[vetor_filmes[j].categoria-1]--;
-                horarios_disponiveis |= vetor_filmes[j].horario;
-            }
-            #pragma omp critical
-            if (j == n-1){
-                vetor_schedules.push_back(filmes);
+                if (j == n-1){
+                    vetor_schedules_privado.push_back(filmes);
+                }
             }
         }
+        #pragma omp critical
+        vetor_schedules.insert(vetor_schedules.end(), vetor_schedules_privado.begin(), vetor_schedules_privado.end());
     }
 }
 
@@ -136,41 +139,13 @@ int main(){
         vetor_filmes_processado[i] = filme_processado;
     }
 
-    //busca_exaustiva(qtd_filmes, vetor_filmes_processado, filmes_por_categoria, vetor_schedules);
-    long int todas_combinacoes = pow(2, qtd_filmes) ;
-    cout << todas_combinacoes << endl;
-    long int i;
-    #pragma omp parallel 
-    { 
-        vector<bitset<64>> vetor_schedules_privado;
-        #pragma omp parallel for private(vetor_schedules) 
-        for (i = 0; i < todas_combinacoes; i++){
-            vector<int> filmes_por_categoria_aux = filmes_por_categoria;
-            bitset<64> filmes(i);
-            bitset<24> horarios_disponiveis;
-            for (int j = 0; j < qtd_filmes; j++){
-                if (filmes[j] == 1){
-                    bitset<24> horario_analisado = horarios_disponiveis & vetor_filmes_processado[j].horario;
-                    if ((horario_analisado != 0)) break;
-                    if ((filmes_por_categoria_aux[vetor_filmes_processado[j].categoria-1] == 0)) break;
-                    filmes_por_categoria_aux[vetor_filmes_processado[j].categoria-1]--;
-                    horarios_disponiveis |= vetor_filmes_processado[j].horario;
-                }
-                if (j == qtd_filmes-1){
-                    vetor_schedules_privado.push_back(filmes);
-                }
-            }
-        }
-        #pragma omp critical
-        vetor_schedules.insert(vetor_schedules.end(), vetor_schedules_privado.begin(), vetor_schedules_privado.end());
-    }
-
+    busca_exaustiva(qtd_filmes, vetor_filmes_processado, filmes_por_categoria, vetor_schedules);
 
     int max = 0;
     int indice_melhor_schedule = 0;
     int qtd_schedules = vetor_schedules.size();
     vector<StructSchedule> vetor_struct_schedules(qtd_schedules); 
-    //#pragma omp parallel for
+ 
     for (int i = 0; i < qtd_schedules; i++){
         StructSchedule schedule;
         schedule.qtd_filmes = 0;
