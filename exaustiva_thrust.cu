@@ -36,18 +36,15 @@ struct Filme{
     int categoria;
 };
 
-struct FilmeProcessado{
-    int categoria;
-    vector<bool> horario;
-};
-
 struct StructSchedule{
     vector<int> filmes;
     int qtd_filmes;
 };
 
 
-void preenche_bitset(vector<bool> &horarios_disponiveis, int inicio, int fim){
+void preenche_bitset(thrust::host_vector<bool> &horarios_disponiveis, int inicio, int fim){
+    cout << inicio << " " << fim << endl; 
+    //cout << horarios_disponiveis.size() << endl;
     for (int i = 0; i < 24; i++){
         if (i >= inicio && i < fim){
             horarios_disponiveis[i] = true;
@@ -60,6 +57,7 @@ void preenche_bitset(vector<bool> &horarios_disponiveis, int inicio, int fim){
         }
     }
 }
+
 
 struct saxpy
 {
@@ -90,9 +88,11 @@ vector<bool> or_vectors(const vector<bool>& v1, const vector<bool>& v2) {
 
 struct busca_exaustiva_gpu 
 {
-    busca_exaustiva_gpu(const vector<FilmeProcessado>& vetor_filmes_processado, int qtd_filmes, int qtd_categorias, const vector<int>& filmes_por_categoria) {}
+    int config;   
+    int qtd_filmes; 
+    busca_exaustiva_gpu(int config_, int qtd_filmes_) : config(config_), qtd_filmes(qtd_filmes_) {}
     __host__ __device__
-    int operator()(const int &config , const vector<FilmeProcessado>&vetor_filmes_processado, const int &qtd_filmes, const int &qtd_categorias, const vector<int> &filmes_por_categoria) {
+    int operator()(const vector<FilmeProcessado>&vetor_filmes_processado, const vector<int> &filmes_por_categoria) {
         vector<bool> horarios_disponiveis(24, false);
         vector<int> filmes_por_categoria_aux = filmes_por_categoria;
         int max_count = 0;
@@ -117,6 +117,7 @@ struct busca_exaustiva_gpu
         return max_count;
     }
 };
+
 
 
 int main(){
@@ -146,34 +147,56 @@ int main(){
         vetor_filmes[i] = filme;
     }
 
+
+    thrust::host_vector<int> categoria_filmes(qtd_filmes);
+    thrust::host_vector<thrust::host_vector<bool>> vetor_filmes_processado_cpu(qtd_filmes);
+
+
     for (int i = 0; i < qtd_filmes; i++){
-        vetor_filmes_processado[i].categoria = vetor_filmes[i].categoria;
-        preenche_bitset(vetor_filmes_processado[i].horario, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
-        // for (int j = 0; j < 24; j++){
-        //   cout << vetor_filmes_processado[i].horario[j] << " " ;
-        // }
-        // cout << endl;
+        thrust::host_vector<bool> horarios_filmes(24);
+        preenche_bitset(horarios_filmes, vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        vetor_filmes_processado_cpu[i] = horarios_filmes;
+        categoria_filmes[i] = vetor_filmes[i].categoria;
+
     }
 
 
-    thrust::device_vector<int> config_vector_cpu(pow(2, qtd_filmes), 0);
-    thrust::counting_iterator<int> config_begin(0);
-    thrust::counting_iterator<int> config_end(pow(2, qtd_filmes));
 
-    thrust::device_vector<int> config_vector_gpu(config_vector_cpu);
-    thrust::transform(config_begin, config_end, config_vector_gpu.begin(), busca_exaustiva_gpu(vetor_filmes_processado, qtd_filmes, qtd_categorias, filmes_por_categoria));
+    thrust::device_vector<int> config_vector_gpu(pow(2, qtd_filmes));
 
-    thrust::host_vector<int> config_vector_cpu_final = config_vector_gpu;
+    thrust::sequence(config_vector_gpu.begin(), config_vector_gpu.end());
 
-    int max_count = 0;
-    for (int i = 0; i < pow(2, qtd_filmes); i++){
-        if (config_vector_cpu[i] > max_count){
-            max_count = config_vector_cpu[i];
-        }
+    thrust::device_vector<int> categoria_filmes_gpu(categoria_filmes);
+    thrust::device_vector<thrust::device_vector<bool>> vetor_filmes_processado_gpu(vetor_filmes_processado_cpu);
+
+    for (int i = 0; i < qtd_filmes; i++){
+      for (int j = 0; j < 24; j++){
+          cout << vetor_filmes_processado_gpu[i][j] << " " ;
+      }
+      cout << endl;
     }
 
-    cout << max_count << endl;
+    // for (int i = 0; i < pow(2, qtd_filmes); i++){
+    //     thrust::transform(vetor_filmes_processado.begin(), vetor_filmes_processado.end(), filmes_por_categoria.begin(), configs_aceitas_gpu.begin(), busca_exaustiva_gpu(config_vector_gpu[i], qtd_filmes));
+    // }
+
+    // // thrust::transform(config_vector_gpu, config_vector_gpu, config_vector_gpu.begin(), busca_exaustiva_gpu);
+
+    // thrust::host_vector<int> config_vector_cpu_final = config_vector_gpu;
+
+    // int max_count = 0;
+    // for (int i = 0; i < pow(2, qtd_filmes); i++){
+    //     if (config_vector_cpu[i] > max_count){
+    //         max_count = config_vector_cpu[i];
+    //     }
+    // }
+
+    // cout << max_count << endl;
 }
+
+}
+
+
 
 
 // g++ -Wl,-z,stack-size=4194304 exaustiva.cpp -o exaustiva
