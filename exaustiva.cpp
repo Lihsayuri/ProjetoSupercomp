@@ -40,26 +40,6 @@ struct StructSchedule{
     int qtd_filmes;
 };
 
-void ordena_final(vector<Filme> &vetor_filmes){
-    std::sort(vetor_filmes.begin(), vetor_filmes.end(), [] (Filme &a, Filme &b){
-		return a.fim < b.fim;
-	});
-
-}
-
-void ordena_inicio(vector<Filme> &vetor_filmes){
-    // Se e somente se o vetor tiver dois horários finais iguais, o que vem primeiro vai ser o vetor com o horśrio inicial menor.
-    for (int i = 0; i < int(vetor_filmes.size()); i++){
-        if (vetor_filmes[i].fim == vetor_filmes[i+1].fim){
-            if (vetor_filmes[i].inicio > vetor_filmes[i+1].inicio){
-                Filme aux = vetor_filmes[i];
-                vetor_filmes[i] = vetor_filmes[i+1];
-                vetor_filmes[i+1] = aux;
-            }
-        }
-    }
-}
-
 void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
     for (int i = 0; i < 24; i++){
         if (i >= inicio && i < fim){
