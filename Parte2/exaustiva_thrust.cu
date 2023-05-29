@@ -39,17 +39,8 @@ struct Filme{
     int categoria;
 };
 
-struct StructSchedule{
-    vector<int> filmes;
-    int qtd_filmes;
-};
 
-struct FilmeProcessado{
-    int categoria;
-    bitset<24> horario;
-};
-
-void preenche_bitset(int &horarios_disponiveis, int inicio, int fim){
+void preenche_horarios(int &horarios_disponiveis, int inicio, int fim){
     for (int i = 0; i < 24; i++){
         if (i >= inicio && i < fim){
             horarios_disponiveis  |= (1 << i);
@@ -61,23 +52,6 @@ void preenche_bitset(int &horarios_disponiveis, int inicio, int fim){
             horarios_disponiveis |= (1 << i);
         }
     }
-}
-
-int and_vectors(const vector<bool>& v1, const vector<bool>& v2) {
-    for (size_t i = 0; i < v1.size(); i++) {
-        if (v1[i] && v2[i]) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-vector<bool> or_vectors(const vector<bool>& v1, const vector<bool>& v2) {
-    vector<bool> result(v1.size());
-    for (size_t i = 0; i < v1.size(); i++) {
-        result[i] = v1[i] || v2[i];
-    }
-    return result;
 }
 
 struct busca_exaustiva_gpu 
@@ -144,7 +118,7 @@ int main(){
 
     for (int i = 0; i < qtd_filmes; i++){
         horarios_filmes_cpu[i] = 0;
-        preenche_bitset(horarios_filmes_cpu[i], vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
+        preenche_horarios(horarios_filmes_cpu[i], vetor_filmes[i].inicio-1, vetor_filmes[i].fim-1);
         categoria_filmes[i] = vetor_filmes[i].categoria;
     }
 
@@ -168,7 +142,7 @@ int main(){
         }
     }
 
-    cout << max_count << endl;
+    cout << "Foram vistos " << max_count << " filmes." << endl;
 }
 
 
