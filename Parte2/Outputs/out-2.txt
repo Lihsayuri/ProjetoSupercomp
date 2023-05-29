@@ -1,8 +1,1 @@
-Foram vistos 7 filmes.
-7 9 5
-13 17 6
-23 2 7
-9 12 4
-3 4 4
-5 7 1
-17 21 4
+Foram vistos 8 filmes.
