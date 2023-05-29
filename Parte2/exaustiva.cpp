@@ -57,7 +57,7 @@ void preenche_bitset(bitset<24> &horarios_disponiveis, int inicio, int fim){
 
 void busca_exaustiva(int n, vector<FilmeProcessado> &vetor_filmes, vector<int> filmes_por_categoria, vector<bitset<64>> &vetor_schedules){
     long int todas_combinacoes = pow(2, n);
-    cout << todas_combinacoes << endl;
+    // cout << todas_combinacoes << endl;
     long int i;
     #pragma omp parallel 
     { 
@@ -148,11 +148,10 @@ int main(){
     StructSchedule melhores_filmes = vetor_struct_schedules[indice_melhor_schedule];
     vector<int> melhor_schedule = melhores_filmes.filmes;
 
-    cout << "Quantidade de filmes: " << melhores_filmes.qtd_filmes << endl;
-    cout << "Melhor schedule: " << endl;
+    cout << "Foram vistos " << melhores_filmes.qtd_filmes << " filmes." << endl;
 
     for (int i = 0; i < melhores_filmes.qtd_filmes; i++){
-        cout << "Filme: " << vetor_filmes[melhor_schedule[i]].inicio << " " << vetor_filmes[melhor_schedule[i]].fim << " " << vetor_filmes[melhor_schedule[i]].categoria << endl;
+        cout << vetor_filmes[melhor_schedule[i]].inicio << " " << vetor_filmes[melhor_schedule[i]].fim << " " << vetor_filmes[melhor_schedule[i]].categoria << endl;
     }
 
 
