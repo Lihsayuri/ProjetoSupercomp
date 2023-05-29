@@ -9,13 +9,16 @@
 #include <random>
 #include <chrono>
 #include <fstream>
+#include <bit>
 #include <bitset>
+#include <cstdint>
 #include <stack>
 #include <utility>
 #include <map>
 #include <ctime>
 #include <omp.h>
 #include <thrust/host_vector.h>
+#include <thrust/sequence.h>
 #include <thrust/device_vector.h>
 #include <thrust/generate.h>
 #include <thrust/functional.h>
@@ -89,25 +92,25 @@ struct busca_exaustiva_gpu
     __host__ __device__
     int operator()(const int& config) {
         int horarios_disponiveis = 0;
-        int filmes_por_categoria_aux[99];
+        int filmes_por_categoria_aux[20];
         for (int i = 0; i < qtd_categorias; i++){
             filmes_por_categoria_aux[i] = *(filmes_por_categoria+i);
         }
-        int max_count = 0;
+        int num_filmes = 0;
         for (int i = 0; i < qtd_filmes; i++){
             if (config & (1 << i)){
                 if (filmes_por_categoria_aux[categoria_filmes[i]-1] > 0){
                     int horario_analisado = horarios_disponiveis & *(horario_filmes + i);
-                    if (((horario_analisado) != 0)) return -1;
+                    if (((horario_analisado) != 0)) return false;
                     filmes_por_categoria_aux[categoria_filmes[i]-1]--;
                     horarios_disponiveis = horarios_disponiveis | *(horario_filmes + i);
-                    max_count += 1;
+                    num_filmes++;
                 }
             }
         
         }
 
-        return max_count;
+        return num_filmes;
     }
 };
 
@@ -145,7 +148,6 @@ int main(){
         categoria_filmes[i] = vetor_filmes[i].categoria;
     }
 
-
     thrust::device_vector<int> config_vector_gpu(pow(2, qtd_filmes));
 
     thrust::sequence(config_vector_gpu.begin(), config_vector_gpu.end());
@@ -155,11 +157,12 @@ int main(){
     thrust::device_vector<int> filmes_por_categoria_gpu(filmes_por_categoria);
 
     thrust::transform(config_vector_gpu.begin(), config_vector_gpu.end(), config_vector_gpu.begin(), busca_exaustiva_gpu(qtd_filmes, qtd_categorias, raw_pointer_cast(filmes_por_categoria_gpu.data()), raw_pointer_cast(horarios_filmes_gpu.data()), raw_pointer_cast(categoria_filmes_gpu.data())));
-
+    
     thrust::host_vector<int> config_vector_cpu_final = config_vector_gpu;
-
+    
     int max_count = 0;
-    for (int i = 0; i < pow(2, qtd_filmes); i++){
+    int iters = pow(2, qtd_filmes);
+    for (int i = 0; i < iters; i++){
         if (config_vector_cpu_final[i] > max_count){
             max_count = config_vector_cpu_final[i];
         }
