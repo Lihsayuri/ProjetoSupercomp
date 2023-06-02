@@ -33,4 +33,5 @@ Saída: Um inteiro representando o número máximo de filmes que podem ser assis
 
 ## Link do Drive para baixar os arquivos de entrada
 
-https://drive.google.com/drive/folders/1-AAfQe7ZwPQNmr-ekSbmH97YaI-AKiz5?usp=sharing
+- Arquivos de entrada da parte 1 do projeto [heurística gulosa e aleatorização] : https://drive.google.com/drive/folders/1-AAfQe7ZwPQNmr-ekSbmH97YaI-AKiz5?usp=sharing
+- Arquivos de entrada da parte 2 do projeto [busca exaustiva com OpenMP e Thrust] : https://drive.google.com/drive/folders/1UZmMwICMC7qHdwiqfNOR_GtMjvfDFO7K?usp=sharing
