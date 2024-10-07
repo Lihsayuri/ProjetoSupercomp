@@ -1,37 +1,37 @@
 # ProjetoSupercomp <img src="https://img.shields.io/static/v1?label=Projeto&message=Finalizado&color=success&style=flat-square&logo=ghost"/>
 
-## Feito por :raising_hand_woman: :raising_hand_man:
+## Authors :raising_hand_woman: :raising_hand_man:
 
 - Bernardo Cunha Capoferri.
 - Lívia Sayuri Makuta.
 
-## Enunciado do projeto :round_pushpin: :
+## Project Statement :round_pushpin: :
 
-Você quer passar um final de semana assistindo ao máximo de filmes possível, mas há restrições quanto aos horários disponíveis e ao número de títulos que podem ser vistos em cada categoria (comédia, drama, ação, etc).
+You want to spend a weekend watching as many movies as possible, but there are restrictions regarding available times and the number of titles that can be watched in each category (comedy, drama, action, etc.).
 
-Entrada: Um inteiro N representando o número de filmes disponíveis para assistir e N trios de inteiros (H[i], F[i], C[i]), representando a hora de início, a hora de fim e a categoria do i-ésimo filme. Além disso, um inteiro M representando o número de categorias e uma lista de M inteiros representando o número máximo de filmes que podem ser assistidos em cada categoria.
+Input: An integer N representing the number of available movies to watch and N triples of integers (H[i], F[i], C[i]), representing the start time, end time, and category of the i-th movie. Additionally, an integer M representing the number of categories and a list of M integers representing the maximum number of movies that can be watched in each category.
 
-Saída: Um inteiro representando o número máximo de filmes que podem ser assistidos de acordo com as restrições de horários e número máximo por categoria.
+Output: An integer representing the maximum number of movies that can be watched according to the time restrictions and the maximum number allowed per category.
 
 ## Descrição dos documentos do repositório:
 
-- `Outputs` : pasta que contêm os outputs da parte 1 do projeto.
-- `Parte1` : pasta que contém a entrega parcial da parte 1 do projeto.
-  - `aleatorizacao.cpp` e `aleatorizacao` : código fonte da estratégia de aleatorização e seu executável, respectivamente.
-  - `gulosa.cpp` e `gulosa` : código fonte da heurística gulosa e seu executável, respectivamente.
-  - `projeto.cpp` e `projeto` : código fonte da estratégia gulosa e aleatória juntas e seu executável, respectivamente.
-  - `meu_programa.cpp` e `meu_programa` : código fonte do gerador de entradas e seu executável, respectivamente.
-  - `callgrind.out.6975` : callgrind do executável gulosa.
-  - `callgrind.out.7748` : callgrind do executável aleatorizacao.
-  - `callgrind.out.8941` : callgrind do executável projeto.
-  - `RelatorioProjeto.ipynb` : relatório parcial do projeto.
-- `Parte2` : pasta que contém a entrega final do projeto, com a implementação da busca exaustiva e paralelização. 
-  - `Outputs` : pasta que contêm os outputs da parte 2 do projeto.
-  - `exaustiva.cpp` e `exaustiva`: código fonte da busca exaustiva paralelizada com OpenMP e seu executável, respectivamente.
-  - `exaustiva_thrust.cu` e `exaustiva_thrust`: código fonte da busca exaustiva paralelizada com Thrust e seu executável, respectivamente.
-  - `RelatorioProjeto.ipynb` : relatório final do projeto.
+- `Outputs` : Folder containing the outputs of Part 1 of the project.
+- `Parte1` : Folder containing the partial submission of Part 1 of the project.
+  - `aleatorizacao.cpp` e `aleatorizacao` : Source code for the randomization strategy and its executable, respectively.
+  - `gulosa.cpp` e `gulosa` : Source code for the greedy heuristic and its executable, respectively.
+  - `projeto.cpp` e `projeto` : Source code for the combined greedy and random strategies and its executable, respectively.
+  - `meu_programa.cpp` e `meu_programa` : Source code for the input generator and its executable, respectively.
+  - `callgrind.out.6975` : Callgrind output for the greedy executable.
+  - `callgrind.out.7748` : Callgrind output for the randomization executable.
+  - `callgrind.out.8941` : Callgrind output for the combined project executable.
+  - `RelatorioProjeto.ipynb` : Partial project report.
+- `Parte2` : Folder containing the final submission of the project, with the implementation of exhaustive search and parallelization.
+  - `Outputs` : Folder containing the outputs of Part 2 of the project.
+  - `exaustiva.cpp` and `exaustiva`: Source code for the parallelized exhaustive search with OpenMP and its executable, respectively.
+  - `exaustiva_thrust.cu` and `exaustiva_thrust`: Source code for the parallelized exhaustive search with Thrust and its executable, respectively.
+  - `RelatorioProjeto.ipynb` : Final project report.
 
 ## Link do Drive para baixar os arquivos de entrada
 
-- Arquivos de entrada da parte 1 do projeto [heurística gulosa e aleatorização] : https://drive.google.com/drive/folders/1-AAfQe7ZwPQNmr-ekSbmH97YaI-AKiz5?usp=sharing
-- Arquivos de entrada da parte 2 do projeto [busca exaustiva com OpenMP e Thrust] : https://drive.google.com/drive/folders/1UZmMwICMC7qHdwiqfNOR_GtMjvfDFO7K?usp=sharing
+- Input files for Part 1 of the project [greedy heuristic and randomization] : https://drive.google.com/drive/folders/1-AAfQe7ZwPQNmr-ekSbmH97YaI-AKiz5?usp=sharing
+- Input files for Part 2 of the project [exhaustive search with OpenMP and Thrust]: https://drive.google.com/drive/folders/1UZmMwICMC7qHdwiqfNOR_GtMjvfDFO7K?usp=sharing
